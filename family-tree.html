@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family Tree Pro - Marriage Records v7.1</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        :root {
+            --gen1: #e74c3c; --gen2: #e67e22; --gen3: #f39c12; --gen4: #27ae60;
+            --gen5: #2980b9; --gen6: #8e44ad; --gen7: #c0392b; --gen8: #2c3e50;
+            --primary: #6c5ce7; --success: #00b894; --danger: #ff7675; --info: #74b9ff;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.98);
+            border-radius: 25px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: none;
+        }
+        
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .app-header h1 { font-size: 2.2em; margin-bottom: 8px; }
+        
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-pill {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 0.9em;
+        }
+        
+        .toolbar {
+            background: #f8f9fa;
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .tool-btn {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 10px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Tajawal';
+            font-size: 0.9em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .tool-btn:hover, .tool-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .search-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-family: 'Tajawal';
+            font-size: 1em;
+        }
+        
+        .icon-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+        
+        .main-content { padding: 20px; min-height: 400px; }
+        
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .member-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-top: 5px solid;
+        }
+        
+        .member-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .photo-container { position: relative; flex-shrink: 0; }
+        
+        .member-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .card-info { flex: 1; }
+        
+        .member-title {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .parent-line {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .spouses-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e0e0e0;
+        }
+        
+        .spouse-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-left: 8px;
+            margin-bottom: 5px;
+        }
+        
+        .spouse-tag.wife {
+            background: #fce4ec;
+            color: #880e4f;
+            border: 1px solid #f48fb1;
+        }
+        
+        .spouse-tag.husband {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #90caf9;
+        }
+        
+        .marriage-date {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-right: 5px;
+        }
+        
+        .card-footer {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            background: white;
+            border: 1px solid #e0e0e0;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .modal-overlay.active { display: flex; }
+        
+        .modal-box {
+            background: white;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+        }
+        
+        .modal-header {
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .modal-body { padding: 30px; }
+        
+        .close-modal {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .section-title {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: 'Tajawal';
+            font-size: 1em;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .members-grid { grid-template-columns: 1fr; }
+        }
+        
+        .marriage-entry {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .marriage-entry.wife { border-color: #f48fb1; background: #fff5f7; }
+        .marriage-entry.husband { border-color: #90caf9; background: #f5fbff; }
+        
+        .remove-marriage {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Tajawal';
+            font-weight: 700;
+            font-size: 0.95em;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-pink { background: #e84393; color: white; }
+        .btn-blue { background: #0984e3; color: white; }
+        .btn-secondary { background: #dfe6e9; color: #2d3436; }
+        
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn-block { width: 100%; }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .photo-upload {
+            width: 120px;
+            height: 120px;
+            border: 3px dashed #cbd5e0;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            margin: 0 auto 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .photo-upload img { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+        
+        .hidden { display: none !important; }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s;
+        }
+        
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        
+        #access-denied {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a1a2e;
+            color: #e94560;
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: 'Tajawal';
+        }
+    </style>
+</head>
+<body>
+
+    <div id="access-denied">
+        <h1>🔒</h1>
+        <h2>غير مصرح بالدخول</h2>
+        <p>كلمة المرور غير صحيحة</p>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        <header class="app-header">
+            <h1>🌳 Family Tree Pro</h1>
+            <div style="opacity: 0.9; margin-top: 5px;">نظام شجرة العائلة - سجلات الزواج</div>
+            <div class="header-stats">
+                <div class="stat-pill">👥 <span id="countMembers">0</span> فرد</div>
+                <div class="stat-pill">💍 <span id="countMarriages">0</span> زواج</div>
+            </div>
+        </header>
+
+        <nav class="toolbar">
+            <button class="tool-btn active" onclick="app.switchView('tree')">🌳 الشجرة</button>
+            <button class="tool-btn" onclick="app.exportData()">💾 تصدير</button>
+            <button class="tool-btn" onclick="app.importData()" style="margin-right: auto;">📂 استيراد</button>
+            <button class="tool-btn btn-primary" onclick="app.openMemberModal()" style="background: var(--primary); color: white;">➕ إضافة فرد</button>
+        </nav>
+
+        <div class="control-panel">
+            <div class="search-wrapper">
+                <div class="input-group">
+                    <input type="text" id="searchInput" placeholder="ابحث بالاسم، الأب، الأم، الزوج/الزوجة..." onkeyup="app.search()">
+                </div>
+                <button class="icon-btn" onclick="app.search()">🔍</button>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <div id="treeView" class="view-section active"></div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">إضافة فرد</div>
+                <button class="close-modal" onclick="app.closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="memberId">
+                
+                <div class="form-section">
+                    <div class="section-title">📷 الصورة الشخصية</div>
+                    <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+                        <img id="photoPreview" style="display: none;">
+                        <div id="photoPlaceholder" style="text-align: center; color: #999;">
+                            <div style="font-size: 2em; margin-bottom: 5px;">📷</div>
+                            <div style="font-size: 0.8em;">اضغط لإضافة صورة</div>
+                        </div>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="app.handlePhoto(this)">
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">📝 البيانات الأساسية</div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">الاسم الرباعي الكامل *</label>
+                        <input type="text" class="form-control" id="inputName" placeholder="أحمد محمد عبدالله القحطاني">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">اسم الأب الكامل *</label>
+                            <input type="text" class="form-control" id="inputFatherName" placeholder="اسم الأب رباعياً">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">اسم الأم الكامل *</label>
+                            <input type="text" class="form-control" id="inputMotherName" placeholder="اسم الأم رباعياً">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">الجيل *</label>
+                            <select class="form-control" id="inputGen">
+                                <option value="1">الجيل الأول</option>
+                                <option value="2">الجيل الثاني</option>
+                                <option value="3">الجيل الثالث</option>
+                                <option value="4">الجيل الرابع</option>
+                                <option value="5">الجيل الخامس</option>
+                                <option value="6">الجيل السادس</option>
+                                <option value="7">الجيل السابع</option>
+                                <option value="8">الجيل الثامن</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">تاريخ الميلاد</label>
+                            <input type="date" class="form-control" id="inputBirthDate">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">
+                        💍 بيانات الزواج 
+                        <span style="font-size: 0.8em; color: #888; font-weight: normal;">(يمكن إضافة أكثر من زوج/زوجة)</span>
+                    </div>
+                    
+                    <div id="marriagesList" style="margin-bottom: 15px;"></div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-pink" onclick="app.addMarriageEntry('wife')" style="flex: 1;">
+                            👰 إضافة زوجة
+                        </button>
+                        <button type="button" class="btn btn-blue" onclick="app.addMarriageEntry('husband')" style="flex: 1;">
+                            🤵 إضافة زوج
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">📝 ملاحظات</div>
+                    <textarea class="form-control" id="inputNotes" rows="3" placeholder="معلومات إضافية..."></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-success btn-lg" onclick="app.saveMember()">💾 حفظ</button>
+                    <button class="btn btn-secondary btn-lg" onclick="app.closeModal()">إلغاء</button>
+                    <button class="btn btn-danger btn-lg hidden" id="btnDelete" onclick="app.deleteMember()">🗑️ حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const CONFIG = {
+            APP_PASSWORD: "Family2024Secure",
+            STORAGE_KEY: "familyTree_v71_fixed"
+        };
+
+        // Security Check
+        (function initSecurity() {
+            const userPass = prompt("🔒 أدخل كلمة المرور للدخول:");
+            if (userPass !== CONFIG.APP_PASSWORD) {
+                document.getElementById('access-denied').style.display = 'flex';
+                throw new Error("Access Denied");
+            }
+            document.getElementById('appContainer').style.display = 'block';
+        })();
+
+        class FamilyTreeApp {
+            constructor() {
+                this.data = [];
+                this.currentId = null;
+                this.currentPhoto = null;
+                this.tempMarriages = [];
+                this.init();
+            }
+
+            init() {
+                this.load();
+                this.render();
+            }
+
+            load() {
+                try {
+                    const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
+                    if (saved) this.data = JSON.parse(saved);
+                } catch(e) { 
+                    this.data = []; 
+                }
+                this.updateStats();
+            }
+
+            save() {
+                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(this.data));
+                this.updateStats();
+            }
+
+            updateStats() {
+                document.getElementById('countMembers').textContent = this.data.length;
+                let marriageCount = 0;
+                this.data.forEach(m => {
+                    if (m.marriages) marriageCount += m.marriages.length;
+                });
+                document.getElementById('countMarriages').textContent = marriageCount;
+            }
+
+            render() {
+                const container = document.getElementById('treeView');
+                const search = document.getElementById('searchInput').value.toLowerCase().trim();
+                let filtered = this.data;
+                
+                if (search) {
+                    filtered = this.data.filter(m => {
+                        const nameMatch = m.name && m.name.toLowerCase().includes(search);
+                        const fatherMatch = m.fatherName && m.fatherName.toLowerCase().includes(search);
+                        const motherMatch = m.motherName && m.motherName.toLowerCase().includes(search);
+                        const spouseMatch = m.marriages && m.marriages.some(s => s.name.toLowerCase().includes(search));
+                        return nameMatch || fatherMatch || motherMatch || spouseMatch;
+                    });
+                }
+
+                filtered.sort((a, b) => a.gen - b.gen);
+
+                container.innerHTML = '';
+                
+                if (filtered.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 60px; color: #888;">
+                            <div style="font-size: 4em; margin-bottom: 20px;">🌳</div>
+                            <h2>لا يوجد أفراد مسجلين</h2>
+                            <p>ابدأ بإضافة فرد جديد</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                for (let g = 1; g <= 8; g++) {
+                    const genMembers = filtered.filter(m => m.gen == g);
+                    if (genMembers.length === 0) continue;
+
+                    const section = document.createElement('div');
+                    section.style.marginBottom = '30px';
+                    section.innerHTML = `
+                        <div style="display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 3px solid var(--gen${g});">
+                            <span style="background: var(--gen${g}); color: white; padding: 6px 15px; border-radius: 20px; margin-left: 10px; font-weight: bold;">الجيل ${g}</span>
+                            <span style="color: #888;">${genMembers.length} فرد</span>
+                        </div>
+                        <div class="members-grid"></div>
+                    `;
+                    
+                    const grid = section.querySelector('.members-grid');
+                    genMembers.forEach(m => grid.appendChild(this.createCard(m, g)));
+                    container.appendChild(section);
+                }
+            }
+
+            createCard(member, genNum) {
+                const div = document.createElement('div');
+                div.className = 'member-card';
+                div.style.borderTopColor = `var(--gen${genNum})`;
+                div.onclick = () => this.openMemberModal(member.id);
+
+                // Photo
+                let photoHtml;
+                if (member.photo) {
+                    photoHtml = `<img src="${member.photo}" class="member-photo">`;
+                } else {
+                    const initial = member.name ? member.name.charAt(0) : '?';
+                    photoHtml = `<div class="member-photo" style="background: var(--gen${genNum})">${initial}</div>`;
+                }
+
+                // Parents display
+                let parentsHtml = '';
+                if (member.fatherName || member.motherName) {
+                    parentsHtml = '<div style="margin-bottom: 8px;">';
+                    if (member.fatherName) {
+                        parentsHtml += `<div class="parent-line">👨‍🦳 <strong>الأب:</strong> ${member.fatherName}</div>`;
+                    }
+                    if (member.motherName) {
+                        parentsHtml += `<div class="parent-line">👩‍🦳 <strong>الأم:</strong> ${member.motherName}</div>`;
+                    }
+                    parentsHtml += '</div>';
+                }
+
+                // Marriages display
+                let spousesHtml = '';
+                if (member.marriages && member.marriages.length > 0) {
+                    spousesHtml = '<div class="spouses-section">';
+                    member.marriages.forEach(marriage => {
+                        const isWife = marriage.type === 'wife';
+                        const icon = isWife ? '👰' : '🤵';
+                        const label = isWife ? 'زوجة' : 'زوج';
+                        const cssClass = isWife ? 'wife' : 'husband';
+                        
+                        spousesHtml += `
+                            <div class="spouse-tag ${cssClass}">
+                                ${icon} <strong>${label}:</strong> ${marriage.name}
+                                ${marriage.date ? `<span class="marriage-date">📅 ${marriage.date}</span>` : ''}
+                            </div>
+                        `;
+                    });
+                    spousesHtml += '</div>';
+                }
+
+                div.innerHTML = `
+                    <div class="card-header">
+                        <div class="photo-container">${photoHtml}</div>
+                        <div class="card-info">
+                            <div class="member-title">${member.name || 'بدون اسم'}</div>
+                            ${parentsHtml}
+                            ${spousesHtml}
+                            <div style="font-size: 0.85em; color: #888; margin-top: 5px;">
+                                ${member.birthDate ? `🎂 ${member.birthDate}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="badge" style="background: var(--gen${genNum}); color: white;">الجيل ${genNum}</span>
+                        ${member.marriages ? `<span class="badge" style="background: #fce4ec; color: #880e4f;">💍 ${member.marriages.length}</span>` : ''}
+                    </div>
+                `;
+                return div;
+            }
+
+            openMemberModal(id = null) {
+                this.currentId = id;
+                this.currentPhoto = null;
+                this.tempMarriages = [];
+                
+                const isEdit = id !== null;
+                const member = isEdit ? this.data.find(m => m.id === id) : null;
+
+                document.getElementById('modalTitle').textContent = isEdit ? 'تعديل بيانات' : 'إضافة فرد جديد';
+
+                // Reset form
+                document.getElementById('inputName').value = member ? member.name : '';
+                document.getElementById('inputFatherName').value = member ? member.fatherName : '';
+                document.getElementById('inputMotherName').value = member ? member.motherName : '';
+                document.getElementById('inputGen').value = member ? member.gen : 1;
+                document.getElementById('inputBirthDate').value = member ? member.birthDate : '';
+                document.getElementById('inputNotes').value = member ? member.notes : '';
+                document.getElementById('memberId').value = id || '';
+
+                // Photo
+                const preview = document.getElementById('photoPreview');
+                const placeholder = document.getElementById('photoPlaceholder');
+                if (member && member.photo) {
+                    preview.src = member.photo;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                    this.currentPhoto = member.photo;
+                } else {
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'block';
+                }
+
+                // Load marriages
+                if (isEdit && member.marriages) {
+                    this.tempMarriages = JSON.parse(JSON.stringify(member.marriages));
+                }
+                this.renderMarriagesList();
+
+                document.getElementById('btnDelete').classList.toggle('hidden', !isEdit);
+                document.getElementById('memberModal').classList.add('active');
+            }
+
+            closeModal() {
+                document.getElementById('memberModal').classList.remove('active');
+                this.currentId = null;
+                this.tempMarriages = [];
+            }
+
+            addMarriageEntry(type) {
+                const name = prompt(`أدخل اسم ${type === 'husband' ? 'الزوج' : 'الزوجة'}:`);
+                if (!name || !name.trim()) return;
+                
+                const date = prompt('تاريخ الزواج (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+                
+                this.tempMarriages.push({
+                    id: Date.now(),
+                    type: type,
+                    name: name.trim(),
+                    date: date || null
+                });
+                
+                this.renderMarriagesList();
+            }
+
+            removeMarriageEntry(index) {
+                if (confirm('حذف هذا السجل؟')) {
+                    this.tempMarriages.splice(index, 1);
+                    this.renderMarriagesList();
+                }
+            }
+
+            renderMarriagesList() {
+                const container = document.getElementById('marriagesList');
+                if (this.tempMarriages.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">لا توجد بيانات زواج مسجلة</p>';
+                    return;
+                }
+
+                container.innerHTML = this.tempMarriages.map((m, idx) => `
+                    <div class="marriage-entry ${m.type}">
+                        <button class="remove-marriage" onclick="app.removeMarriageEntry(${idx})" title="حذف">✕</button>
+                        <div style="font-size: 1.2em; margin-bottom: 5px;">
+                            ${m.type === 'husband' ? '🤵' : '👰'} 
+                            <strong>${m.type === 'husband' ? 'زوج' : 'زوجة'}:</strong> ${m.name}
+                        </div>
+                        ${m.date ? `<div style="color: #666;">📅 تاريخ الزواج: ${m.date}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            handlePhoto(input) {
+                const file = input.files[0];
+                if (!file) return;
+                
+                if (file.size > 2 * 1024 * 1024) {
+                    this.showToast('حجم الصورة كبير جداً (الحد الأقصى 2MB)');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.currentPhoto = e.target.result;
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    document.getElementById('photoPlaceholder').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            saveMember() {
+                const id = document.getElementById('memberId').value;
+                const name = document.getElementById('inputName').value.trim();
+                const fatherName = document.getElementById('inputFatherName').value.trim();
+                const motherName = document.getElementById('inputMotherName').value.trim();
+                const gen = parseInt(document.getElementById('inputGen').value);
+                const birthDate = document.getElementById('inputBirthDate').value;
+                const notes = document.getElementById('inputNotes').value.trim();
+
+                if (!name) {
+                    this.showToast('❌ الاسم مطلوب');
+                    return;
+                }
+                
+                if (!fatherName && !motherName) {
+                    this.showToast('❌ يجب إدخال اسم الأب أو الأم على الأقل');
+                    return;
+                }
+
+                const memberData = {
+                    id: id || Date.now().toString(),
+                    name: name,
+                    fatherName: fatherName,
+                    motherName: motherName,
+                    gen: gen,
+                    birthDate: birthDate,
+                    notes: notes,
+                    photo: this.currentPhoto,
+                    marriages: this.tempMarriages
+                };
+
+                if (id) {
+                    const idx = this.data.findIndex(m => m.id === id);
+                    if (idx !== -1) {
+                        this.data[idx] = memberData;
+                    }
+                } else {
+                    this.data.push(memberData);
+                }
+
+                this.save();
+                this.closeModal();
+                this.render();
+                this.showToast(id ? '✅ تم التحديث بنجاح' : '✅ تم الإضافة بنجاح');
+            }
+
+            deleteMember() {
+                if (!confirm('هل أنت متأكد من حذف هذا الفرد؟')) return;
+                
+                this.data = this.data.filter(m => m.id !== this.currentId);
+                this.save();
+                this.closeModal();
+                this.render();
+                this.showToast('🗑️ تم الحذف');
+            }
+
+            search() {
+                this.render();
+            }
+
+            switchView(view) {
+                this.render();
+            }
+
+            showToast(msg) {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+
+            exportData() {
+                const dataStr = JSON.stringify(this.data, null, 2);
+                const blob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `family_tree_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                this.showToast('💾 تم تصدير البيانات');
+            }
+
+            importData() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const imported = JSON.parse(event.target.result);
+                            if (Array.isArray(imported)) {
+                                if (confirm(`استيراد ${imported.length} فرد؟ سيتم استبدال البيانات الحالية.`)) {
+                                    this.data = imported;
+                                    this.save();
+                                    this.render();
+                                    this.showToast('✅ تم الاستيراد بنجاح');
+                                }
+                            } else {
+                                throw new Error('Invalid format');
+                            }
+                        } catch(err) {
+                            alert('❌ ملف غير صالح أو تالف');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            }
+        }
+
+        const app = new FamilyTreeApp();
+        
+        // Close modal when clicking outside
+        window.onclick = (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('active');
+            }
+        };
+    </script>
+</body>
+</html>
